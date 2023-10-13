@@ -16,7 +16,12 @@
     "type": "git",
     "url": "git+https://github.com/RESTyard/TypeScriptSirenClient.git"
   },
-  "keywords": ["RESTyard", "Siren", "Hypermedia", "HATEOAT"],
+  "keywords": [
+    "RESTyard",
+    "Siren",
+    "Hypermedia",
+    "HATEOAT"
+  ],
   "author": "RESTyard-team",
   "license": "MIT",
   "bugs": {
@@ -25,5 +30,10 @@
   "homepage": "https://github.com/RESTyard/TypeScriptSirenClient#readme",
   "devDependencies": {
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@angular/common": "^16.2.9",
+    "@angular/core": "^16.2.9",
+    "simple-object-query": "^1.6.1"
   }
 }
