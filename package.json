@@ -1,5 +1,5 @@
 {
-  "name": "restyard-typescriptsirenclient",
+  "name": "@restyard/siren-client",
   "version": "0.1.0",
   "description": "Basic siren client.",
   "main": "lib/index.js",
@@ -34,6 +34,7 @@
   "dependencies": {
     "@angular/common": "^16.2.9",
     "@angular/core": "^16.2.9",
+    "@angular/router": "^16.2.9",
     "simple-object-query": "^1.6.1"
   }
 }
