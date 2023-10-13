@@ -1,0 +1,29 @@
+{
+  "name": "restyard-typescriptsirenclient",
+  "version": "0.1.0",
+  "description": "Basic siren client.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "prepack": "tsc",
+    "prepublish": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RESTyard/TypeScriptSirenClient.git"
+  },
+  "keywords": ["RESTyard", "Siren", "Hypermedia", "HATEOAT"],
+  "author": "RESTyard-team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RESTyard/TypeScriptSirenClient/issues"
+  },
+  "homepage": "https://github.com/RESTyard/TypeScriptSirenClient#readme",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
