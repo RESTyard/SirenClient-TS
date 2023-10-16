@@ -1,4 +1,5 @@
-import { BehaviorSubject, tap } from 'rxjs';
+import { Observable, BehaviorSubject, of, tap, map, catchError } from 'rxjs';
+import { Result, Success, Failure } from 'fnxt/result';
 import { FileService } from './file-service';
 
 import { SirenDeserializer } from './siren-deserializer';
@@ -18,7 +19,6 @@ export class HypermediaClientService {
   private currentClientObject$: BehaviorSubject<SirenClientObject> = new BehaviorSubject<SirenClientObject>(new SirenClientObject());
   private currentClientObjectRaw$: BehaviorSubject<object | null> = new BehaviorSubject<object | null>({});
   private currentNavPaths$: BehaviorSubject<Array<string>> = new BehaviorSubject<Array<string>>(new Array<string>());
-  private currentRoutes$: BehaviorSubject<Array<any>> = new BehaviorSubject<Array<string>>(new Array<any>());
   private apiPath: ApiPath = new ApiPath();
 
   // indicate that a http request is pending
@@ -46,49 +46,35 @@ export class HypermediaClientService {
     return this.currentNavPaths$;
   }
 
-  navigateToEntryPoint() {
-    if (!this.apiPath || !this.apiPath.hasPath) {
-      this.currentRoutes$.next(['']);
-    }
-
-    this.Navigate(this.apiPath.firstSegment);
+  navigateToEntryPoint(): Observable<Result<SirenClientObject, ProblemDetailsError>> {
+    return this.Navigate(this.apiPath.firstSegment);
   }
 
-  NavigateToApiPath(apiPath: ApiPath) {
-    if (!apiPath || !apiPath.hasPath) {
-      this.currentRoutes$.next(['']);
-    }
-
+  NavigateToApiPath(apiPath: ApiPath): Observable<Result<SirenClientObject, ProblemDetailsError>> {
     this.apiPath = apiPath;
-    this.Navigate(this.apiPath.newestSegment);
+    return this.Navigate(this.apiPath.newestSegment);
   }
 
   get currentApiPath(): ApiPath {
     return this.apiPath;
   }
 
-  Navigate(url: string) {
+  Navigate(url: string): Observable<Result<SirenClientObject, ProblemDetailsError>> {
     this.apiPath.addStep(url);
 
     var headers = this.httpHeadersFactory.create().set('Accept', MediaTypes.Siren);
     // todo use media type of link if exists in siren, maybe check for supported types?
     this.AddBusyRequest();
-    this.httpClient
+    var result = this.httpClient
       .get(url, {
         headers: headers,
         observe: 'response',
         // responseType:'blob' // use for generic access
-      })
-      .pipe(
-        tap({
-          next: () => this.RemoveBusyRequest(),
-          error: () => this.RemoveBusyRequest()
-        }))
+      });
+    result
       .subscribe({
         next: response =>
         {
-          this.currentRoutes$.next(['hui']);
-
           const sirenClientObject = this.MapResponse(response.body);
 
           this.currentClientObject$.next(sirenClientObject);
@@ -97,30 +83,27 @@ export class HypermediaClientService {
         },
         error: (err: HttpErrorResponse) => { throw this.MapHttpErrorResponseToProblemDetails(err); }
       });
+    return result.pipe(
+      map((x) => Success(this.MapResponse(x.body))),
+      catchError((error: HttpErrorResponse) => of(Failure(this.MapHttpErrorResponseToProblemDetails(error))))
+    );
   }
 
-  DownloadAsFile(downloadUrl: string) {
+  DownloadAsFile(downloadUrl: string): Observable<[content: Blob | null, filename: string | undefined]> {
     // this will break for large files
     // consider https://github.com/jimmywarting/StreamSaver.js
-    this.httpClient
+    return this.httpClient
       .get(downloadUrl, {
         observe: 'response',
         responseType: 'blob'
       })
-      .subscribe(response => {
-        let fileName = response.headers.get('content-disposition')
-          ?.split(';')[1]
-          .split('=')[1];
-        if (!fileName) {
-          console.log('Could not get file name form response. Use default.');
-          fileName = "download.dat"
-        }
-
-        let blob = response.body;
-        if (blob) {
-          this.fileService.saveFile(blob, fileName);
-        }
-      })
+      .pipe(
+        map(response => {
+          let fileName = response.headers.get('content-disposition')
+            ?.split(';')[1]
+            .split('=')[1];
+          return [response.body, fileName];
+      }))
   }
 
   private AddBusyRequest() {
@@ -130,11 +113,6 @@ export class HypermediaClientService {
   private RemoveBusyRequest() {
     this.busyRequestsCounter--;
     this.isBusy$.next(this.busyRequestsCounter != 0);
-  }
-
-  navigateToMainPage() {
-    this.apiPath.clear();
-    this.currentRoutes$.next(['']);
   }
 
   createHeaders(withContentType: string | null = null): HttpHeaders {
@@ -190,7 +168,13 @@ export class HypermediaClientService {
     return parameters;
   }
 
-  executeAction(action: HypermediaAction, actionResult: (actionResults: ActionResults, resultLocation: string | null, content: any, problemDetailsError: ProblemDetailsError | null) => void): any {
+  executeAction(
+    action: HypermediaAction,
+    actionResult: (
+      actionResults: ActionResults,
+      resultLocation: string | null,
+      content: any,
+      problemDetailsError: ProblemDetailsError | null) => void): any {
     let requestBody = null;
 
     switch (action.actionType){

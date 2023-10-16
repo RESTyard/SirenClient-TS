@@ -15,7 +15,7 @@ export class HypermediaAction {
   public waheActionParameterName: string | undefined;
   public waheActionParameterClasses: string[] | undefined;
   public waheActionParameterJsonSchema: Observable<object> | undefined;
-  public parameters: string | undefined;
+  public parameters: any | undefined;
   public defaultValues: object | undefined;
 
   public files: File[] = [];
