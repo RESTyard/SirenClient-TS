@@ -1,7 +1,6 @@
-import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
 import {map} from 'rxjs';
 
+import { HttpClient } from './contracts/HttpClient';
 import {SirenClientObject} from './SirenModel/siren-client-object';
 import {HypermediaLink} from './SirenModel/hypermedia-link';
 import {PropertyInfo, PropertyTypes} from './SirenModel/property-info';
@@ -16,7 +15,6 @@ import {ObservableLruCache} from './observable-lru-cache';
 import {MediaTypes} from "./MediaTypes";
 import { FileUploadConfiguration } from './SirenModel/file-upload-configuration';
 
-@Injectable()
 export class SirenDeserializer {
   private readonly waheActionTypes = [MediaTypes.Json, MediaTypes.FormData, MediaTypes.OctetStream];
 

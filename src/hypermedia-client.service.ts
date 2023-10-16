@@ -1,33 +1,24 @@
-
-import { Injectable } from '@angular/core';
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpResponse,
-  HttpHeaders,
-} from '@angular/common/http';
-import { Router } from '@angular/router';
-
-import { Observable, BehaviorSubject, map, catchError, Subject, tap } from 'rxjs';
+import { BehaviorSubject, tap } from 'rxjs';
 import { FileService } from './file-service';
 
 import { SirenDeserializer } from './siren-deserializer';
 import { ObservableLruCache } from './observable-lru-cache';
 import { SirenClientObject } from './SirenModel/siren-client-object';
-import { HypermediaAction, HttpMethodTypes, ActionType } from './SirenModel/hypermedia-action';
+import { HypermediaAction, ActionType } from './SirenModel/hypermedia-action';
 import { ApiPath } from './api-path';
 
 import { HypermediaSettings } from './hypermedia-settings';
 
 import { ProblemDetailsError } from './problem-details-error';
 import { MediaTypes } from "./MediaTypes";
+import { HttpClient, HttpResponse, HttpErrorResponse, HttpHeaders, HttpHeadersFactory } from './contracts/HttpClient';
 
 const problemDetailsMimeType = "application/problem+json";
-@Injectable()
 export class HypermediaClientService {
   private currentClientObject$: BehaviorSubject<SirenClientObject> = new BehaviorSubject<SirenClientObject>(new SirenClientObject());
   private currentClientObjectRaw$: BehaviorSubject<object | null> = new BehaviorSubject<object | null>({});
   private currentNavPaths$: BehaviorSubject<Array<string>> = new BehaviorSubject<Array<string>>(new Array<string>());
+  private currentRoutes$: BehaviorSubject<Array<any>> = new BehaviorSubject<Array<string>>(new Array<any>());
   private apiPath: ApiPath = new ApiPath();
 
   // indicate that a http request is pending
@@ -36,9 +27,9 @@ export class HypermediaClientService {
 
   constructor(
     private httpClient: HttpClient,
+    private httpHeadersFactory: HttpHeadersFactory,
     private schemaCache: ObservableLruCache<object>,
     private sirenDeserializer: SirenDeserializer,
-    private router: Router,
     private settings: HypermediaSettings,
     private fileService: FileService) {
   }
@@ -57,7 +48,7 @@ export class HypermediaClientService {
 
   navigateToEntryPoint() {
     if (!this.apiPath || !this.apiPath.hasPath) {
-      this.router.navigate(['']);
+      this.currentRoutes$.next(['']);
     }
 
     this.Navigate(this.apiPath.firstSegment);
@@ -65,7 +56,7 @@ export class HypermediaClientService {
 
   NavigateToApiPath(apiPath: ApiPath) {
     if (!apiPath || !apiPath.hasPath) {
-      this.router.navigate(['']);
+      this.currentRoutes$.next(['']);
     }
 
     this.apiPath = apiPath;
@@ -79,9 +70,8 @@ export class HypermediaClientService {
   Navigate(url: string) {
     this.apiPath.addStep(url);
 
+    var headers = this.httpHeadersFactory.create().set('Accept', MediaTypes.Siren);
     // todo use media type of link if exists in siren, maybe check for supported types?
-    const headers = new HttpHeaders().set('Accept', MediaTypes.Siren);
-
     this.AddBusyRequest();
     this.httpClient
       .get(url, {
@@ -97,11 +87,7 @@ export class HypermediaClientService {
       .subscribe({
         next: response =>
         {
-          this.router.navigate(['hui'], {
-            queryParams: {
-              apiPath: this.apiPath.fullPath
-            }
-          });
+          this.currentRoutes$.next(['hui']);
 
           const sirenClientObject = this.MapResponse(response.body);
 
@@ -148,11 +134,11 @@ export class HypermediaClientService {
 
   navigateToMainPage() {
     this.apiPath.clear();
-    this.router.navigate([''], {});
+    this.currentRoutes$.next(['']);
   }
 
   createHeaders(withContentType: string | null = null): HttpHeaders {
-    const headers = new HttpHeaders();
+    const headers = this.httpHeadersFactory.create();
 
     if (withContentType) {
       headers.set('Content-Type', withContentType);

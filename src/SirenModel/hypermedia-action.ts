@@ -1,5 +1,5 @@
-import {Observable} from 'rxjs';
-import {FileUploadConfiguration} from "./file-upload-configuration";
+import { Observable } from 'rxjs';
+import { FileUploadConfiguration } from "./file-upload-configuration";
 
 export class HypermediaAction {
   public name: string | undefined;

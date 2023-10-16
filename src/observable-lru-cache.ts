@@ -1,9 +1,5 @@
-import { Injectable } from '@angular/core';
 import {map, Observable, of, share} from 'rxjs';
 
-
-
-@Injectable()
 export class ObservableLruCache<T> {
   private cacheItems: Map<string, CacheItem<T>> = new Map<string, CacheItem<T>>();
   private maxEntries = 30;
