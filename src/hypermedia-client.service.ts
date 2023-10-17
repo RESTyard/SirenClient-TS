@@ -1,11 +1,11 @@
-import { Observable, BehaviorSubject, of, tap, map, catchError } from 'rxjs';
+import { Observable, BehaviorSubject, of, tap, map, catchError, concatMap } from 'rxjs';
 import { Result, Success, Failure } from 'fnxt/result';
 import { FileService } from './file-service';
 
 import { SirenDeserializer } from './siren-deserializer';
 import { ObservableLruCache } from './observable-lru-cache';
 import { SirenClientObject } from './SirenModel/siren-client-object';
-import { HypermediaAction, ActionType } from './SirenModel/hypermedia-action';
+import { HypermediaAction, ActionType, HypermediaActionResult } from './SirenModel/hypermedia-action';
 import { ApiPath } from './api-path';
 
 import { HypermediaSettings } from './hypermedia-settings';
@@ -126,14 +126,14 @@ export class HypermediaClientService {
     return headers;
   }
 
-  private OnActionResponse(response: HttpResponse<any>, actionResult: (actionResults: ActionResults, resultLocation: string | null, content: any, problemDetailsError: ProblemDetailsError | null) => void) {
+  private OnActionResponse(response: HttpResponse<any>): HypermediaActionResult {
     const location = response.headers.get('Location');
     if (!response.headers || location === null) {
       console.log('No location header was in response for action.');
-      actionResult(ActionResults.ok, null, response.body, null);
+      return { resultLocation: null, content: response.body };
     }
 
-    actionResult(ActionResults.ok, location, response.body, null);
+    return { resultLocation: location, content: response.body };
   }
 
   private ExecuteRequest(action: HypermediaAction, headers: any, body: any | null) {
@@ -155,26 +155,22 @@ export class HypermediaClientService {
         ));
   }
 
-  createWaheStyleActionParameters(action: HypermediaAction): any {
-    if (action.parameters === null) {
+  createWaheStyleActionParameters(action: HypermediaAction, parameters: any): any {
+    if (parameters === null) {
       throw new Error(`Action requires parameters but got none. ${action}`);
     }
 
-    const parameters = new Array<any>();
+    const result = new Array<any>();
     const internalObject: any = {};
-    internalObject[action.waheActionParameterName!] = action.parameters;
-    parameters.push(internalObject);
+    internalObject[action.waheActionParameterName!] = parameters;
+    result.push(internalObject);
 
-    return parameters;
+    return result;
   }
 
   executeAction(
     action: HypermediaAction,
-    actionResult: (
-      actionResults: ActionResults,
-      resultLocation: string | null,
-      content: any,
-      problemDetailsError: ProblemDetailsError | null) => void): any {
+    parameters?: any): Observable<Result<HypermediaActionResult, ProblemDetailsError>> {
     let requestBody = null;
 
     switch (action.actionType){
@@ -188,9 +184,9 @@ export class HypermediaClientService {
       }
       case ActionType.JsonObjectParameters: {
         if (this.settings.useEmbeddingPropertyForActionParameters) {
-          requestBody = this.createWaheStyleActionParameters(action);
+          requestBody = this.createWaheStyleActionParameters(action, parameters);
         } else {
-          requestBody = action.parameters;
+          requestBody = parameters;
         }
         break;
       }
@@ -199,11 +195,11 @@ export class HypermediaClientService {
     const headers = this.createHeaders(action.type)
 
     // todo if action responds with a action resource, process body
-    this.ExecuteRequest(action, headers, requestBody)
-      .subscribe({
-        next: (response: HttpResponse<any>) => this.OnActionResponse(response, actionResult),
-        error: (errorResponse: HttpErrorResponse) => this.HandleActionError(errorResponse, actionResult)
-      });
+    return this.ExecuteRequest(action, headers, requestBody)
+      .pipe(
+        map((response: HttpResponse<any>) => Success(this.OnActionResponse(response))),
+        catchError((errorResponse: HttpErrorResponse) => of(Failure(this.MapHttpErrorResponseToProblemDetails(errorResponse))))
+      );
   }
 
   private BuildBodyForFileUpload(action: HypermediaAction): any {
@@ -291,21 +287,8 @@ export class HypermediaClientService {
     });
   }
 
-  private HandleActionError(errorResponse: HttpErrorResponse, actionResult: (actionResults: ActionResults, resultLocation: string | null, content: any, problemDetailsError: ProblemDetailsError) => void) {
-    let problemDetailsError: ProblemDetailsError = this.MapHttpErrorResponseToProblemDetails(errorResponse);
-
-    actionResult(ActionResults.error, null, null, problemDetailsError);
-  }
-
   private MapResponse(response: any): SirenClientObject {
     const hco = this.sirenDeserializer.deserialize(response);
     return hco;
   }
-}
-
-export enum ActionResults {
-  undefined,
-  pending,
-  error,
-  ok
 }
