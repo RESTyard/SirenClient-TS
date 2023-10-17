@@ -1,6 +1,5 @@
 import { Observable, BehaviorSubject, of, tap, map, catchError, concatMap } from 'rxjs';
 import { Result, Success, Failure } from 'fnxt/result';
-import { FileService } from './file-service';
 
 import { SirenDeserializer } from './siren-deserializer';
 import { ObservableLruCache } from './observable-lru-cache';
@@ -21,17 +20,12 @@ export class HypermediaClientService {
   private currentNavPaths$: BehaviorSubject<Array<string>> = new BehaviorSubject<Array<string>>(new Array<string>());
   private apiPath: ApiPath = new ApiPath();
 
-  // indicate that a http request is pending
-  public isBusy$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private busyRequestsCounter = 0;
-
   constructor(
     private httpClient: HttpClient,
     private httpHeadersFactory: HttpHeadersFactory,
     private schemaCache: ObservableLruCache<object>,
     private sirenDeserializer: SirenDeserializer,
-    private settings: HypermediaSettings,
-    private fileService: FileService) {
+    private settings: HypermediaSettings) {
   }
 
   getHypermediaObjectStream(): BehaviorSubject<SirenClientObject> {
@@ -64,7 +58,6 @@ export class HypermediaClientService {
 
     var headers = this.httpHeadersFactory.create().set('Accept', MediaTypes.Siren);
     // todo use media type of link if exists in siren, maybe check for supported types?
-    this.AddBusyRequest();
     var result = this.httpClient
       .get(url, {
         headers: headers,
@@ -106,15 +99,6 @@ export class HypermediaClientService {
       }))
   }
 
-  private AddBusyRequest() {
-    this.busyRequestsCounter++;
-    this.isBusy$.next(this.busyRequestsCounter != 0);
-  }
-  private RemoveBusyRequest() {
-    this.busyRequestsCounter--;
-    this.isBusy$.next(this.busyRequestsCounter != 0);
-  }
-
   createHeaders(withContentType: string | null = null): HttpHeaders {
     const headers = this.httpHeadersFactory.create();
 
@@ -137,8 +121,6 @@ export class HypermediaClientService {
   }
 
   private ExecuteRequest(action: HypermediaAction, headers: any, body: any | null) {
-    this.AddBusyRequest()
-
     return this.httpClient.request(
       action.method,
       action.href,
@@ -146,13 +128,7 @@ export class HypermediaClientService {
         observe: "response",
         headers: headers,
         body: body
-      })
-      .pipe(
-        tap({
-          next: () => this.RemoveBusyRequest(),
-          error: () => this.RemoveBusyRequest()
-        }
-        ));
+      });
   }
 
   createWaheStyleActionParameters(action: HypermediaAction, parameters: any): any {
