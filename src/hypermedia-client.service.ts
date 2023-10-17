@@ -1,8 +1,7 @@
-import { Observable, BehaviorSubject, of, tap, map, catchError, concatMap } from 'rxjs';
+import { Observable, BehaviorSubject, of, map, catchError } from 'rxjs';
 import { Result, Success, Failure } from 'fnxt/result';
 
 import { SirenDeserializer } from './siren-deserializer';
-import { ObservableLruCache } from './observable-lru-cache';
 import { SirenClientObject } from './SirenModel/siren-client-object';
 import { HypermediaAction, ActionType, HypermediaActionResult } from './SirenModel/hypermedia-action';
 import { ApiPath } from './api-path';
@@ -23,37 +22,36 @@ export class HypermediaClientService {
   constructor(
     private httpClient: HttpClient,
     private httpHeadersFactory: HttpHeadersFactory,
-    private schemaCache: ObservableLruCache<object>,
     private sirenDeserializer: SirenDeserializer,
     private settings: HypermediaSettings) {
   }
 
-  getHypermediaObjectStream(): BehaviorSubject<SirenClientObject> {
+  getHypermediaObjectStream = (): BehaviorSubject<SirenClientObject> => {
     return this.currentClientObject$;
   }
 
-  getHypermediaObjectRawStream(): BehaviorSubject<object | null> {
+  getHypermediaObjectRawStream = (): BehaviorSubject<object | null> => {
     return this.currentClientObjectRaw$;
   }
 
-  getNavPathsStream(): BehaviorSubject<Array<string>> {
+  getNavPathsStream = (): BehaviorSubject<Array<string>> => {
     return this.currentNavPaths$;
   }
 
-  navigateToEntryPoint(): Observable<Result<SirenClientObject, ProblemDetailsError>> {
-    return this.Navigate(this.apiPath.firstSegment);
+  navigateToEntryPoint = (): Observable<Result<SirenClientObject, ProblemDetailsError>> => {
+    return this.navigate(this.apiPath.firstSegment);
   }
 
-  NavigateToApiPath(apiPath: ApiPath): Observable<Result<SirenClientObject, ProblemDetailsError>> {
+  navigateToApiPath = (apiPath: ApiPath): Observable<Result<SirenClientObject, ProblemDetailsError>> => {
     this.apiPath = apiPath;
-    return this.Navigate(this.apiPath.newestSegment);
+    return this.navigate(this.apiPath.newestSegment);
   }
 
   get currentApiPath(): ApiPath {
     return this.apiPath;
   }
 
-  Navigate(url: string): Observable<Result<SirenClientObject, ProblemDetailsError>> {
+  navigate = (url: string): Observable<Result<SirenClientObject, ProblemDetailsError>> => {
     this.apiPath.addStep(url);
 
     var headers = this.httpHeadersFactory.create().set('Accept', MediaTypes.Siren);
@@ -68,21 +66,21 @@ export class HypermediaClientService {
       .subscribe({
         next: response =>
         {
-          const sirenClientObject = this.MapResponse(response.body);
+          const sirenClientObject = this.mapResponse(response.body);
 
           this.currentClientObject$.next(sirenClientObject);
           this.currentClientObjectRaw$.next(response.body);
           this.currentNavPaths$.next(this.apiPath.fullPath);
         },
-        error: (err: HttpErrorResponse) => { throw this.MapHttpErrorResponseToProblemDetails(err); }
+        error: (err: HttpErrorResponse) => { throw this.mapHttpErrorResponseToProblemDetails(err); }
       });
     return result.pipe(
-      map((x) => Success(this.MapResponse(x.body))),
-      catchError((error: HttpErrorResponse) => of(Failure(this.MapHttpErrorResponseToProblemDetails(error))))
+      map((x) => Success(this.mapResponse(x.body))),
+      catchError((error: HttpErrorResponse) => of(Failure(this.mapHttpErrorResponseToProblemDetails(error))))
     );
   }
 
-  DownloadAsFile(downloadUrl: string): Observable<[content: Blob | null, filename: string | undefined]> {
+  downloadAsFile = (downloadUrl: string): Observable<[content: Blob | null, filename: string | undefined]> => {
     // this will break for large files
     // consider https://github.com/jimmywarting/StreamSaver.js
     return this.httpClient
@@ -99,7 +97,7 @@ export class HypermediaClientService {
       }))
   }
 
-  createHeaders(withContentType: string | null = null): HttpHeaders {
+  createHeaders = (withContentType: string | null = null): HttpHeaders => {
     const headers = this.httpHeadersFactory.create();
 
     if (withContentType) {
@@ -110,7 +108,7 @@ export class HypermediaClientService {
     return headers;
   }
 
-  private OnActionResponse(response: HttpResponse<any>): HypermediaActionResult {
+  private onActionResponse = (response: HttpResponse<any>): HypermediaActionResult => {
     const location = response.headers.get('Location');
     if (!response.headers || location === null) {
       console.log('No location header was in response for action.');
@@ -120,7 +118,7 @@ export class HypermediaClientService {
     return { resultLocation: location, content: response.body };
   }
 
-  private ExecuteRequest(action: HypermediaAction, headers: any, body: any | null) {
+  private executeRequest = (action: HypermediaAction, headers: any, body: any | null) => {
     return this.httpClient.request(
       action.method,
       action.href,
@@ -131,7 +129,7 @@ export class HypermediaClientService {
       });
   }
 
-  createWaheStyleActionParameters(action: HypermediaAction, parameters: any): any {
+  createWaheStyleActionParameters = (action: HypermediaAction, parameters: any): any => {
     if (parameters === null) {
       throw new Error(`Action requires parameters but got none. ${action}`);
     }
@@ -144,9 +142,9 @@ export class HypermediaClientService {
     return result;
   }
 
-  executeAction(
+  executeAction = (
     action: HypermediaAction,
-    parameters?: any): Observable<Result<HypermediaActionResult, ProblemDetailsError>> {
+    parameters?: any): Observable<Result<HypermediaActionResult, ProblemDetailsError>> => {
     let requestBody = null;
 
     switch (action.actionType){
@@ -154,7 +152,7 @@ export class HypermediaClientService {
         break;
       }
       case ActionType.FileUpload: {
-        requestBody = this.BuildBodyForFileUpload(action)
+        requestBody = this.buildBodyForFileUpload(action)
 
         break;
       }
@@ -171,14 +169,14 @@ export class HypermediaClientService {
     const headers = this.createHeaders(action.type)
 
     // todo if action responds with a action resource, process body
-    return this.ExecuteRequest(action, headers, requestBody)
+    return this.executeRequest(action, headers, requestBody)
       .pipe(
-        map((response: HttpResponse<any>) => Success(this.OnActionResponse(response))),
-        catchError((errorResponse: HttpErrorResponse) => of(Failure(this.MapHttpErrorResponseToProblemDetails(errorResponse))))
+        map((response: HttpResponse<any>) => Success(this.onActionResponse(response))),
+        catchError((errorResponse: HttpErrorResponse) => of(Failure(this.mapHttpErrorResponseToProblemDetails(errorResponse))))
       );
   }
 
-  private BuildBodyForFileUpload(action: HypermediaAction): any {
+  private buildBodyForFileUpload = (action: HypermediaAction): any => {
     if (action.files.length < 1) {
       throw new Error(`Can not execute file upload. No file specified`)
     }
@@ -199,7 +197,7 @@ export class HypermediaClientService {
     }
   }
 
-  private MapHttpErrorResponseToProblemDetails(errorResponse: HttpErrorResponse): ProblemDetailsError {
+  private mapHttpErrorResponseToProblemDetails = (errorResponse: HttpErrorResponse): ProblemDetailsError => {
     if (errorResponse.error && errorResponse.error.error instanceof SyntaxError) {
       // we did not receive a json
       console.error('Content error:', errorResponse.error.message);
@@ -263,7 +261,7 @@ export class HypermediaClientService {
     });
   }
 
-  private MapResponse(response: any): SirenClientObject {
+  private mapResponse = (response: any): SirenClientObject => {
     const hco = this.sirenDeserializer.deserialize(response);
     return hco;
   }

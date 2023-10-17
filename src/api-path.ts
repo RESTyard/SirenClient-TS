@@ -5,7 +5,7 @@ export class ApiPath {
        this.apiPath = apiPath;
      }
  
-     initFromRouterParams(routerParameters: any) {
+     initFromRouterParams = (routerParameters: any) => {
        let apiPath: any;
        apiPath = routerParameters['apiPath'];
  
@@ -22,7 +22,7 @@ export class ApiPath {
      }
  
  
-     isEqual(other: ApiPath): boolean {
+     isEqual = (other: ApiPath): boolean => {
        if (!other) {
          return false;
        }
@@ -39,7 +39,7 @@ export class ApiPath {
        return true;
      }
  
-     clear() {
+     clear = () => {
        this.apiPath = [];
      }
  
@@ -63,7 +63,7 @@ export class ApiPath {
        return [...this.apiPath];
      }
  
-     addStep(stepUrl: string) {
+     addStep = (stepUrl: string) => {
        const stepIndex = this.getStepIndex(stepUrl);
        if (stepIndex === -1 ) {
          this.apiPath.push(stepUrl);
@@ -73,7 +73,7 @@ export class ApiPath {
        this.apiPath = this.apiPath.slice(0, stepIndex + 1);
      }
  
-     private getStepIndex(stepUrl: string): number {
+     private getStepIndex = (stepUrl: string): number => {
        for (let i = 0; i < this.apiPath.length; i++) {
          if (this.apiPath[i] === stepUrl) {
            return i;

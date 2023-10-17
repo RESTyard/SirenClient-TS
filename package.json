@@ -2,8 +2,8 @@
   "name": "@restyard/siren-client",
   "version": "0.1.0",
   "description": "Basic siren client.",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/hypermedia-client.service.js",
+  "types": "lib/hypermedia-client.service.d.ts",
   "files": [
     "lib"
   ],
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RESTyard/TypeScriptSirenClient.git"
+    "url": "git+https://github.com/RESTyard/SirenClient-TS.git"
   },
   "keywords": [
     "RESTyard",
@@ -25,9 +25,9 @@
   "author": "RESTyard-team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/RESTyard/TypeScriptSirenClient/issues"
+    "url": "https://github.com/RESTyard/SirenClient-TS/issues"
   },
-  "homepage": "https://github.com/RESTyard/TypeScriptSirenClient#readme",
+  "homepage": "https://github.com/RESTyard/SirenClient-TS#readme",
   "devDependencies": {
     "typescript": "^5.2.2"
   },

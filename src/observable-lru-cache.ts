@@ -2,9 +2,12 @@ import {map, Observable, of, share} from 'rxjs';
 
 export class ObservableLruCache<T> {
   private cacheItems: Map<string, CacheItem<T>> = new Map<string, CacheItem<T>>();
-  private maxEntries = 30;
+  
+  constructor(private maxEntries = 50) {
 
-  public getItem(key: string): Observable<T>|null {
+  }
+
+  public getItem = (key: string): Observable<T>|null => {
 
     const hasKey = this.cacheItems.has(key);
     let item: CacheItem<T> | undefined;
@@ -25,7 +28,7 @@ export class ObservableLruCache<T> {
     return null;
   }
 
-  public addItem(key: string, value: Observable<T>): Observable<T> {
+  public addItem = (key: string, value: Observable<T>): Observable<T> => {
     // least-recently used cache eviction strategy
     if (this.cacheItems.size >= this.maxEntries) {
       const keyToDelete = this.cacheItems.keys().next().value;
@@ -45,7 +48,7 @@ class CacheItem<T> {
   value: T|null = null;
   valueSource: Observable<T> | null = null;
 
-  setValue(valueSource: Observable<T>): Observable<T> {
+  setValue = (valueSource: Observable<T>): Observable<T> => {
     this.valueSource = valueSource
       .pipe(
         map(result => {
@@ -59,7 +62,7 @@ class CacheItem<T> {
     return this.valueSource;
   }
 
-  getValue(): Observable<T> | null {
+  getValue = (): Observable<T> | null => {
     if (this.value) {
       return of(this.value);
     }
