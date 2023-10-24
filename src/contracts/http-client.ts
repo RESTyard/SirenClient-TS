@@ -1,4 +1,6 @@
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
+import {HttpResponse} from "./http-response";
+import {HttpHeaders} from "./http-headers";
 
 export interface HttpClient {
     get(
@@ -38,24 +40,4 @@ export interface HttpClient {
             responseType?: "json";
         }
     ): Observable<HttpResponse<Object>>
-}
-
-export interface HttpResponse<T> {
-    body: T | null;
-    headers: HttpHeaders;
-}
-
-export interface HttpErrorResponse extends Error {
-    status: number;
-    error: any | null;
-    headers: HttpHeaders;
-}
-
-export interface HttpHeaders {
-    get(name: string) : string | null;
-    set(name: string, value: string | string[]): HttpHeaders;
-}
-
-export interface HttpHeadersFactory {
-    create(): HttpHeaders;
 }
