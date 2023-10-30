@@ -1,9 +1,9 @@
 {
   "name": "@restyard/siren-client",
-  "version": "0.1.1",
+  "version": "0.1.5",
   "description": "Basic siren client.",
-  "main": "lib/hypermedia-client.service.js",
-  "types": "lib/hypermedia-client.service.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "files": [
     "lib"
   ],
