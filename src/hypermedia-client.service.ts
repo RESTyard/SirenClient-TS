@@ -9,7 +9,11 @@ import { HypermediaSettings } from './hypermedia-settings';
 
 import { ProblemDetailsError } from './problem-details-error';
 import { MediaTypes } from "./media-types";
-import { HttpClient, HttpResponse, HttpErrorResponse, HttpHeaders, HttpHeadersFactory } from './contracts';
+import { HttpClient } from './contracts';
+import { HttpResponse } from './contracts';
+import { HttpErrorResponse } from './contracts';
+import { HttpHeaders } from './contracts';
+import { HttpHeadersFactory } from './contracts';
 
 const problemDetailsMimeType = "application/problem+json";
 export class HypermediaClientService {
