@@ -77,7 +77,7 @@ export class ProblemDetailsError implements Error {
     }
     stack?: string | undefined;
 
-    FromJson(json: string): ProblemDetailsError {
+    fromJson = (json: string): ProblemDetailsError => {
         var jsonObj = JSON.parse(json);
 
         if (jsonObj.type) {

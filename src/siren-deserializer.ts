@@ -1,40 +1,39 @@
-import {map} from 'rxjs';
+import { map } from 'rxjs';
 
-import { HttpClient } from './contracts/HttpClient';
-import {SirenClientObject} from './SirenModel/siren-client-object';
-import {HypermediaLink} from './SirenModel/hypermedia-link';
-import {PropertyInfo, PropertyTypes} from './SirenModel/property-info';
-import {ActionType, HttpMethodTypes, HypermediaAction} from './SirenModel/hypermedia-action';
-import {ReflectionHelpers} from './reflection-helpers';
-import {SchemaSimplifier} from './schema-simplifier';
-import {EmbeddedLinkEntity} from './SirenModel/embedded-link-entity';
-import {IEmbeddedEntity, ISirenClientObject} from './SirenModel/entity-interfaces';
-import {EmbeddedEntity} from './SirenModel/embedded-entity';
-import {ObservableLruCache} from './observable-lru-cache';
+import { HttpClient } from './contracts/http-client';
+import { SirenClientObject } from './siren-model/siren-client-object';
+import { HypermediaLink } from './siren-model/hypermedia-link';
+import { PropertyInfo, PropertyTypes } from './siren-model/property-info';
+import { ActionType, HttpMethodTypes, HypermediaAction } from './siren-model/hypermedia-action';
+import { ReflectionHelpers } from './reflection-helpers';
+import { SchemaSimplifier } from './schema-simplifier';
+import { EmbeddedLinkEntity } from './siren-model/embedded-link-entity';
+import { IEmbeddedEntity , ISirenClientObject} from './siren-model/entity-interfaces';
+import { EmbeddedEntity } from './siren-model/embedded-entity';
+import { ObservableLruCache } from './observable-lru-cache';
 
-import {MediaTypes} from "./MediaTypes";
-import { FileUploadConfiguration } from './SirenModel/file-upload-configuration';
+import { MediaTypes } from "./media-types";
 
 export class SirenDeserializer {
   private readonly waheActionTypes = [MediaTypes.Json, MediaTypes.FormData, MediaTypes.OctetStream];
 
   private static httpInputTypeFile = 'file';
   constructor(
-     private httpClient: HttpClient,
-      private schemaCache: ObservableLruCache<object>, // todo move out, let users inject it 
-      private schemaSimplifier: SchemaSimplifier // todo move out, let users inject it
+      private httpClient: HttpClient,
+      private schemaCache: ObservableLruCache<object>, // todo convert to interface, let users inject it 
+      private schemaSimplifier: SchemaSimplifier // todo convert to interface, let users inject it
     ) {
 
   }
 
-  deserialize(raw: any): SirenClientObject {
+  deserialize = (raw: any): SirenClientObject => {
     const result = new SirenClientObject();
     this.deserializeEntity(raw, result);
 
     return result;
   }
 
-  private deserializeEmbeddedEntity(raw: any): EmbeddedEntity {
+  private deserializeEmbeddedEntity = (raw: any): EmbeddedEntity => {
     const result = new EmbeddedEntity();
     result.relations = [...raw.rel];
     this.deserializeEntity(raw, result);
@@ -42,7 +41,7 @@ export class SirenDeserializer {
     return result;
   }
 
-  private deserializeEntity(raw: any, result: ISirenClientObject) {
+  private deserializeEntity = (raw: any, result: ISirenClientObject) => {
     if (ReflectionHelpers.hasFilledArrayProperty(raw, 'class')) {
       result.classes = [...(<string[]>raw.class)];
     }
@@ -62,7 +61,7 @@ export class SirenDeserializer {
     }
   }
 
-  private deserializeLinks(raw: any): HypermediaLink[] {
+  private deserializeLinks = (raw: any): HypermediaLink[] => {
     const result = new Array<HypermediaLink>();
 
     if (!ReflectionHelpers.hasFilledArrayProperty(raw, 'links')) {
@@ -77,7 +76,7 @@ export class SirenDeserializer {
     return result;
   }
 
-  deserializeProperties(raw: any): PropertyInfo[] {
+  deserializeProperties = (raw: any): PropertyInfo[] => {
     const result = new Array<PropertyInfo>();
 
     if (!ReflectionHelpers.hasFilledProperty(raw, 'properties')) {
@@ -132,7 +131,7 @@ export class SirenDeserializer {
     return result;
   }
 
-  deserializeActions(raw: any): HypermediaAction[] {
+  deserializeActions = (raw: any): HypermediaAction[] => {
     const result = new Array<HypermediaAction>();
 
     if (!ReflectionHelpers.hasFilledArrayProperty(raw, 'actions')) {
@@ -162,7 +161,7 @@ export class SirenDeserializer {
     return result;
   }
 
-  deserializeActionParameters(action: any, hypermediaAction: HypermediaAction) {
+  deserializeActionParameters = (action: any, hypermediaAction: HypermediaAction) => {
     if (!ReflectionHelpers.hasFilledArrayProperty(action, 'fields') || action.fields.length === 0) {
       hypermediaAction.actionType = ActionType.NoParameters;
       return;
@@ -171,7 +170,7 @@ export class SirenDeserializer {
     }
   }
 
-  private getMethod(action: any): HttpMethodTypes {
+  private getMethod = (action: any): HttpMethodTypes => {
     let method = HttpMethodTypes[action.method as keyof typeof HttpMethodTypes];
 
     // default value for siren is GET
@@ -182,7 +181,7 @@ export class SirenDeserializer {
     return method;
   }
 
-  deserializeEmbeddedEntitys(entities: Array<any>): Array<IEmbeddedEntity> {
+  deserializeEmbeddedEntitys = (entities: Array<any>): Array<IEmbeddedEntity> => {
     const result = new Array<EmbeddedEntity>();
     entities.forEach(entity => {
       if (this.isEmbeddedLinkEntity(entity)) {
@@ -196,7 +195,7 @@ export class SirenDeserializer {
     return result;
   }
 
-  deserializeEmbeddedLinkEntity(entities: Array<any>): Array<EmbeddedLinkEntity> {
+  deserializeEmbeddedLinkEntity = (entities: Array<any>): Array<EmbeddedLinkEntity> => {
     const result = new Array<EmbeddedLinkEntity>();
 
     entities.forEach(entity => {
@@ -217,7 +216,7 @@ export class SirenDeserializer {
     return result;
   }
 
-  private isEmbeddedLinkEntity(entity: any) {
+  private isEmbeddedLinkEntity = (entity: any) => {
     if (entity.hasOwnProperty('href')) {
       return true;
     }
@@ -225,7 +224,7 @@ export class SirenDeserializer {
     return false;
   }
 
-  parseWaheStyleParameters(action: any, hypermediaAction: HypermediaAction) {
+  parseWaheStyleParameters = (action: any, hypermediaAction: HypermediaAction) => {
     if (!ReflectionHelpers.hasProperty(action, 'type') || !this.waheActionTypes.includes(action.type)) {
       throw new Error(`Only supporting actions with types="${this.waheActionTypes.join()}". [action ${action.name}]`); // todo parse standard siren
     }
@@ -252,17 +251,17 @@ export class SirenDeserializer {
 
     switch (hypermediaAction.fieldType) {
       case MediaTypes.Json:
-        this.FillJsonParameterInformation(hypermediaAction, action, actionField);
+        this.fillJsonParameterInformation(hypermediaAction, action, actionField);
         break;
       case SirenDeserializer.httpInputTypeFile:
-        this.FillFileUploadInformation(hypermediaAction, action, actionField);
+        this.fillFileUploadInformation(hypermediaAction, action, actionField);
         break;
       default:
     }
 
   }
 
-  private FillFileUploadInformation(hypermediaAction: HypermediaAction, action: any, actionField: any) {
+  private fillFileUploadInformation = (hypermediaAction: HypermediaAction, action: any, actionField: any) => {
     hypermediaAction.actionType = ActionType.FileUpload;
 
     if (actionField.maxFileSizeBytes) {
@@ -278,7 +277,7 @@ export class SirenDeserializer {
     }
   }
 
-  private FillJsonParameterInformation(hypermediaAction: HypermediaAction, action: any, actionField: any) {
+  private fillJsonParameterInformation = (hypermediaAction: HypermediaAction, action: any, actionField: any) => {
     hypermediaAction.actionType = ActionType.JsonObjectParameters;
 
     if (!hypermediaAction.waheActionParameterClasses || hypermediaAction.waheActionParameterClasses.length !== 1) {
@@ -291,8 +290,8 @@ export class SirenDeserializer {
     this.getActionParameterJsonSchema(hypermediaAction.waheActionParameterClasses[0], hypermediaAction);
   }
 
-// todo handle error
-  getActionParameterJsonSchema(schemaUrl: string, hypermediaAction: HypermediaAction) {
+  // todo handle error
+  getActionParameterJsonSchema = (schemaUrl: string, hypermediaAction: HypermediaAction) => {
     const cached = this.schemaCache.getItem(schemaUrl);
     if (cached) {
       hypermediaAction.waheActionParameterJsonSchema = cached;
@@ -310,5 +309,4 @@ export class SirenDeserializer {
     const cachedResponse = this.schemaCache.addItem(schemaUrl, simplifiedResponse$);
     hypermediaAction.waheActionParameterJsonSchema = cachedResponse;
   }
-
 }

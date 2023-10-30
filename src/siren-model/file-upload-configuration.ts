@@ -23,7 +23,7 @@ export class FileUploadConfiguration {
   /// </summary>
   public Accept: string[] = []
 
-  public getAcceptString():string {
+  public getAcceptString = (): string => {
     return this.Accept.join(",");
   }
 }

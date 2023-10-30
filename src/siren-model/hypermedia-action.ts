@@ -38,3 +38,7 @@ export enum ActionType {
   FileUpload = 'multipart/form-data'
 }
 
+export type HypermediaActionResult = {
+  resultLocation: string | null;
+  content: any;
+}

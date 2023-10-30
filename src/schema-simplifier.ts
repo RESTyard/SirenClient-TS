@@ -3,7 +3,7 @@ import { find } from 'simple-object-query';
 // todo consider replacing: https://github.com/redexp/simple-object-query/blob/master/simple-object-query.js
 
 export class SchemaSimplifier {
-  simplifySchema(response: any) {
+  simplifySchema = (response: any) => {
     // normalize schema so ui component can render propperly, if component improves this may be vanish:
     // sub schemas, definitions + ref: not resolved
     // format: unknown "int32", "int64"
@@ -11,7 +11,7 @@ export class SchemaSimplifier {
 
     this.resolveLocalReferences(response);
     this.fixNullablesInOneOf(response);
-    this.flatenOneOf(response);
+    this.flattenOneOf(response);
     this.fixUnknownFormats(response);
     this.simplifyAnyOf(response);
 
@@ -20,14 +20,14 @@ export class SchemaSimplifier {
     this.removeSchemaSpecification(response);
   }
 
-  private removeSchemaSpecification(schema: any) {
+  private removeSchemaSpecification = (schema: any) => {
     const schemaProeprty = '$schema';
     if (schema.hasOwnProperty(schemaProeprty)) {
       delete schema[schemaProeprty];
     }
   }
 
-  private fixUnknownFormats(object: any) {
+  private fixUnknownFormats = (object: any) => {
     for (const propertyName in object) {
       if (!object.hasOwnProperty(propertyName)) {
         continue;
@@ -47,7 +47,7 @@ export class SchemaSimplifier {
     }
   }
 
-  private flatenOneOf(schema: any) {
+  private flattenOneOf = (schema: any) => {
     const properties = schema.properties;
     if (!properties) {
       return;
@@ -75,12 +75,12 @@ export class SchemaSimplifier {
         properties[propertyName] = containedSchema;
 
         // recursion
-        this.flatenOneOf(properties[propertyName]);
+        this.flattenOneOf(properties[propertyName]);
       }
     }
   }
 
-  private fixNullablesInOneOf(schema: any) {
+  private fixNullablesInOneOf = (schema: any) => {
     const properties = schema.properties;
     if (!properties) {
       return;
@@ -103,7 +103,7 @@ export class SchemaSimplifier {
     }
   }
 
-  private removeNullType(oneOf: Array<any>) {
+  private removeNullType = (oneOf: Array<any>) => {
     let nullTypeCount = 0;
     let nullTypeItemIndex = -1;
     let index = 0;
@@ -127,7 +127,7 @@ export class SchemaSimplifier {
     oneOf.splice(nullTypeItemIndex, 1);
   }
 
-  private resolveLocalReferences(schema: any) {
+  private resolveLocalReferences = (schema: any) => {
     // could have replaced a ref with something that contained a ref
     let iteration = 0;
     const maxTrys = 50;
@@ -140,7 +140,7 @@ export class SchemaSimplifier {
         break;
       }
 
-      this.ReplaceRefs(foundRefs, schema);
+      this.replaceRefs(foundRefs, schema);
 
       iteration++;
     }
@@ -153,7 +153,7 @@ export class SchemaSimplifier {
     return;
   }
 
-  private ReplaceRefs(foundRefs: any[], schema: any) {
+  private replaceRefs = (foundRefs: any[], schema: any) => {
     foundRefs.forEach((refParent) => {
       const definitionKey = (<string>refParent.$ref).replace(
         '#/definitions/',
@@ -168,7 +168,7 @@ export class SchemaSimplifier {
     });
   }
 
-  private simplifyAnyOf(schema: any): void {
+  private simplifyAnyOf = (schema: any): void => {
     if (typeof schema !== 'object' || schema === null) {
       return;
     }
