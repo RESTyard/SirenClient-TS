@@ -2,15 +2,14 @@ import { Observable, BehaviorSubject, of, map, catchError } from 'rxjs';
 import { Result, Success, Failure } from 'fnxt/result';
 
 import { SirenDeserializer } from './siren-deserializer';
-import { SirenClientObject } from './SirenModel/siren-client-object';
-import { HypermediaAction, ActionType, HypermediaActionResult } from './SirenModel/hypermedia-action';
+import { HypermediaAction, ActionType, HypermediaActionResult, SirenClientObject } from './siren-model';
 import { ApiPath } from './api-path';
 
 import { HypermediaSettings } from './hypermedia-settings';
 
 import { ProblemDetailsError } from './problem-details-error';
-import { MediaTypes } from "./MediaTypes";
-import { HttpClient, HttpResponse, HttpErrorResponse, HttpHeaders, HttpHeadersFactory } from './contracts/HttpClient';
+import { MediaTypes } from "./media-types";
+import { HttpClient, HttpResponse, HttpErrorResponse, HttpHeaders, HttpHeadersFactory } from './contracts';
 
 const problemDetailsMimeType = "application/problem+json";
 export class HypermediaClientService {
@@ -62,20 +61,16 @@ export class HypermediaClientService {
         observe: 'response',
         // responseType:'blob' // use for generic access
       });
-    result
-      .subscribe({
-        next: response =>
-        {
-          const sirenClientObject = this.mapResponse(response.body);
+    return result.pipe(
+        map(x => {
+          const sirenClientObject = this.mapResponse(x.body);
 
           this.currentClientObject$.next(sirenClientObject);
-          this.currentClientObjectRaw$.next(response.body);
+          this.currentClientObjectRaw$.next(x.body);
           this.currentNavPaths$.next(this.apiPath.fullPath);
-        },
-        error: (err: HttpErrorResponse) => { throw this.mapHttpErrorResponseToProblemDetails(err); }
-      });
-    return result.pipe(
-      map((x) => Success(this.mapResponse(x.body))),
+
+          return Success(sirenClientObject);
+        }),
       catchError((error: HttpErrorResponse) => of(Failure(this.mapHttpErrorResponseToProblemDetails(error))))
     );
   }
