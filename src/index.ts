@@ -7,3 +7,7 @@ export * from './problem-details-error';
 export * from './reflection-helpers';
 export * from './schema-simplifier';
 export * from './siren-deserializer';
+
+export * from './contracts'
+export * from './operators'
+export * from './siren-model'
