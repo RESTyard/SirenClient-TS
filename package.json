@@ -1,6 +1,6 @@
 {
   "name": "@restyard/siren-client",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Basic siren client.",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm5/index.js",
@@ -21,7 +21,7 @@
     "prebuild": "rimraf ./dist",
     "build": "npm run compile",
     "compile": "tsc -b ./src/tsconfig.cjs.json ./src/tsconfig.cjs.spec.json ./src/tsconfig.esm.json ./src/tsconfig.esm5.json ./src/tsconfig.esm5.rollup.json ./src/tsconfig.types.json ./src/tsconfig.types.spec.json ./spec/tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require ts-node/register ./spec/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
@@ -46,7 +46,14 @@
   "dependencies": {
     "fnxt": "^1.17.4",
     "rxjs": "^7.8.1",
-    "simple-object-query": "^1.6.1"
+    "simple-object-query": "^1.6.1",
+    "@types/chai": "^4.3.9",
+    "@types/mocha": "^10.0.3",
+    "@types/sinon": "^17.0.0",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "sinon": "^17.0.1",
+    "ts-node": "^10.9.1"
   },
   "exports": {
     ".": {
