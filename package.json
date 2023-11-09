@@ -21,7 +21,8 @@
     "prebuild": "rimraf ./dist",
     "build": "npm run compile",
     "compile": "tsc -b ./src/tsconfig.cjs.json ./src/tsconfig.cjs.spec.json ./src/tsconfig.esm.json ./src/tsconfig.esm5.json ./src/tsconfig.esm5.rollup.json ./src/tsconfig.types.json ./src/tsconfig.types.spec.json ./spec/tsconfig.json",
-    "test": "mocha --require ts-node/register ./spec/**/*.spec.ts"
+    "test": "mocha --require ts-node/register ./spec/**/*.spec.ts",
+    "pack": "npm run build && npm pack"
   },
   "repository": {
     "type": "git",
