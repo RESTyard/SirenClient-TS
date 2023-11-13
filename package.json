@@ -1,16 +1,28 @@
 {
   "name": "@restyard/siren-client",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Basic siren client.",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm5/index.js",
+  "es2015": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "files": [
-    "lib"
+    "dist/bundles",
+    "dist/cjs/**/!(*.tsbuildinfo)",
+    "dist/esm/**/!(*.tsbuildinfo)",
+    "dist/esm5/**/!(*.tsbuildinfo)",
+    "dist/types/**/!(*.tsbuildinfo)",
+    "src",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
   ],
   "scripts": {
-    "prepack": "tsc",
-    "prepublish": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prebuild": "rimraf ./dist",
+    "build": "npm run compile",
+    "compile": "tsc -b ./src/tsconfig.cjs.json ./src/tsconfig.cjs.spec.json ./src/tsconfig.esm.json ./src/tsconfig.esm5.json ./src/tsconfig.esm5.rollup.json ./src/tsconfig.types.json ./src/tsconfig.types.spec.json ./spec/tsconfig.json",
+    "test": "mocha --require ts-node/register ./spec/**/*.spec.ts",
+    "pack": "npm run build && npm pack"
   },
   "repository": {
     "type": "git",
@@ -29,11 +41,29 @@
   },
   "homepage": "https://github.com/RESTyard/SirenClient-TS#readme",
   "devDependencies": {
+    "rimraf": "^5.0.5",
     "typescript": "^5.2.2"
   },
   "dependencies": {
     "fnxt": "^1.17.4",
     "rxjs": "^7.8.1",
-    "simple-object-query": "^1.6.1"
-  }
+    "simple-object-query": "^1.6.1",
+    "@types/chai": "^4.3.9",
+    "@types/mocha": "^10.0.3",
+    "@types/sinon": "^17.0.0",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "sinon": "^17.0.1",
+    "ts-node": "^10.9.1"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "node": "./dist/cjs/index.js",
+      "es2015": "./dist/esm/index.js",
+      "default": "./dist/esm5/index.js"
+    }
+  },
+  "./package.json": "./package.json"
 }
