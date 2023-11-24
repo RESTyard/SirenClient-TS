@@ -1,11 +1,11 @@
 {
   "name": "@restyard/siren-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Basic siren client.",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm5/index.js",
   "es2015": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "types": "index.d.ts",
   "files": [
     "dist/bundles",
     "dist/cjs/**/!(*.tsbuildinfo)",
@@ -63,6 +63,11 @@
       "node": "./dist/cjs/index.js",
       "es2015": "./dist/esm/index.js",
       "default": "./dist/esm5/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["./dist/types/*"]
     }
   },
   "./package.json": "./package.json"
